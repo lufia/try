@@ -1,7 +1,11 @@
 # try
 An experimental error handling library.
 
-## EXAMPLE
+## Supported Architectures
+
+* amd64
+
+## Example
 
 ```go
 import (
