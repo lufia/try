@@ -8,7 +8,7 @@ TEXT ·waserror(SB),(NOSPLIT|NOFRAME|WRAPPER),$0
 	MOVQ	SP, Scope_sp(CX)
 	MOVQ	0(SP), AX
 	MOVQ	AX, Scope_pc(CX)
-	MOVQ	$0, AX
+	MOVQ	$0, ret+8(FP)
 	RET
 
 TEXT ·raise(SB),(NOSPLIT|NOFRAME|WRAPPER),$0
@@ -17,5 +17,5 @@ TEXT ·raise(SB),(NOSPLIT|NOFRAME|WRAPPER),$0
 	MOVQ	Scope_sp(CX), SP
 	MOVQ	Scope_pc(CX), AX
 	MOVQ	AX, 0(SP)
-	MOVQ	$1, AX
+	MOVQ	$1, ret+8(FP)
 	RET
