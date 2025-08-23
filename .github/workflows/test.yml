@@ -1,0 +1,10 @@
+name: Test
+
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+jobs:
+  test:
+    uses: lufia/workflows/.github/workflows/go-test.yml@65fcecee196960dacd2ee5bd97a822d28e53411f # v0.7.1
