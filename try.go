@@ -1,13 +1,17 @@
 // Package try provides error-handling utilities.
 package try
 
+// Scope represents the fallback point.
 type Scope struct {
 	pc  uintptr
 	sp  uintptr
 	err error
 }
 
+//go:noinline
 func waserror(s *Scope) bool
+
+//go:noinline
 func raise(s *Scope)
 
 // Handle creates a fallback point.
@@ -20,18 +24,22 @@ func Handle() (*Scope, error) {
 }
 
 // Raise fallbacks to the fallback point s.
+//
+// Raise should be called on the same stack to [Handle].
 func (s *Scope) Raise(err error) {
 	if err == nil {
 		return
 	}
 	s.err = err
 	raise(s)
-	panic("do not reach")
+	panic("do not reach here")
 }
 
-// Check checks whether err is not nil, if an error was happen, it jumps [Handle].
+// Check checks whether err is not nil.
+// If err is nil, it returns v.
+// Otherwise it rewinds to the fallback point s, then [Handle] returns err.
 //
-//go:noinline
+// Check should be called on the same stack to [Handle].
 func Check[T any](v T, err error) func(s *Scope) T {
 	return func(s *Scope) T {
 		s.Raise(err)
@@ -40,8 +48,6 @@ func Check[T any](v T, err error) func(s *Scope) T {
 }
 
 // Check2 is a variant of [Check].
-//
-//go:noinline
 func Check2[T1, T2 any](v1 T1, v2 T2, err error) func(s *Scope) (T1, T2) {
 	return func(s *Scope) (T1, T2) {
 		s.Raise(err)

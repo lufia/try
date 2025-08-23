@@ -11,11 +11,12 @@ func Example() {
 	s, err := try.Handle()
 	if err != nil {
 		fmt.Println("error:", err)
-		// Output: error: unsupported operation
 		return
 	}
 	v := try.Check(read())(s)
 	fmt.Println("value:", v)
+	// Output:
+	// error: unsupported operation
 }
 
 func read() (string, error) {
