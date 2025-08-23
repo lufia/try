@@ -4,6 +4,7 @@ An experimental error handling library.
 ## Supported Architectures
 
 * amd64
+* arm64
 
 ## Example
 
