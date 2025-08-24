@@ -11,6 +11,33 @@ An experimental error handling library.
 
 ## Example
 
+Error handling in Go sometimes gets flustrated. For instance:
+
+```go
+func GetAlerts(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	orgID, err := strconv.Atoi(r.Form.Get("orgId"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	alerts, err := repository.FetchAlerts(orgID)
+	if err != nil {
+		http.Error(w, err.Error(), http.InternalServerError)
+		return
+	}
+	body, err := json.Marshal(alerts)
+	if err != nil {
+		http.Error(w, err.Error(), http.InternalServerError)
+		return
+	}
+	...
+}
+```
+
 ```go
 import (
 	"net/url"

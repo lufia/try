@@ -2,6 +2,7 @@ package try
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/m-mizutani/gt"
@@ -11,8 +12,8 @@ func TestHandle(t *testing.T) {
 	s, err := Handle()
 	gt.NoError(t, err)
 
-	gt.Number(t, int64(s.pc)).NotEqual(0)
-	gt.Number(t, int64(s.sp)).NotEqual(0)
+	gt.Number(t, int64(uintptr(s.pc))).NotEqual(0)
+	gt.Number(t, int64(uintptr(s.sp))).NotEqual(0)
 	gt.NoError(t, s.err)
 }
 
@@ -35,7 +36,22 @@ func TestCheck_onError(t *testing.T) {
 		raised = true
 	}
 	if !raised {
-		Check(10, errors.New("fake"))(s)
+		Check(10, errors.New("fake")).Eval(s)
 	}
 	gt.Bool(t, raised).True()
+}
+
+func TestCheck_onErrorWithWrap(t *testing.T) {
+	wrap := func(err error) error {
+		return fmt.Errorf("failed: %w", err)
+	}
+	msg := ""
+	s, err := Handle()
+	if err != nil {
+		msg = err.Error()
+	}
+	if msg == "" {
+		Check(10, errors.New("fake")).Wrap(wrap).Eval(s)
+	}
+	gt.String(t, msg).Equal("failed: fak")
 }

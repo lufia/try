@@ -13,7 +13,7 @@ func Example() {
 		fmt.Println("error:", err)
 		return
 	}
-	v := try.Check(read())(s)
+	v := try.Check(read()).Eval(s)
 	fmt.Println("value:", v)
 	// Output:
 	// error: unsupported operation
