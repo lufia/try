@@ -3,31 +3,28 @@
 #include "go_asm.h"
 
 // $32-0
-#define Handle_size 32
-
-//  0.. 7(SP) = return to Handle
-//            = no frames for waserror
-//  8..15(SP) = BP of Handle
-// 16..23(SP) = return to main
-// 24..55(SP) = frame size for Handle
-// 56..63(SP) = BP of main
+#define	Handle_size 32
 
 TEXT ·waserror(SB),(NOSPLIT|NOFRAME|WRAPPER),$0
 	NO_LOCAL_POINTERS
 	MOVQ	s+0(FP), CX
-	MOVQ	56(SP), AX
-	SUBQ	$8, AX
+	MOVQ	32(SP), AX
+	MOVQ	(AX), AX
+	ADDQ	$8, AX
 	MOVQ	AX, Scope_sp(CX)
-	MOVQ	16(SP), AX
+	MOVQ	40(SP), AX
 	MOVQ	AX, Scope_pc(CX)
-	MOVQ	$0, ret+8(FP)
+	MOVB	$0, ret+8(FP)
 	RET
 
 TEXT ·raise(SB),(NOSPLIT|NOFRAME|WRAPPER),$0
 	NO_LOCAL_POINTERS
-	MOVQ	s+0(FP), CX
-	MOVQ	Scope_sp(CX), SP
-	MOVQ	Scope_pc(CX), AX
-	MOVQ	AX, 0(SP)
-	MOVQ	$1, ret+8(FP)
+	MOVQ	s+0(FP), AX
+	MOVQ	Scope_sp(AX), BP
+	SUBQ	$8, BP
+	MOVQ	Scope_sp(AX), SP
+	MOVQ	Scope_pc(AX), CX
+	MOVQ	CX, 0(SP)
+	MOVQ	Scope_err(AX), BX
+	MOVQ	$(Scope_err+8)(AX), CX
 	RET
