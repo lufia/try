@@ -1,42 +1,42 @@
 package main
 
 import (
-	"errors"
 	"fmt"
+	"unsafe"
+
+	"github.com/lufia/try"
 )
 
 func getsp() uintptr
-func getfp() uintptr
-func returnTo(off int) uintptr
-func returnTo2(off int) uintptr
+func getmem(addr uintptr) uintptr
 
+// $104-0
 func main() {
-	sp := getsp()
-	fp := getfp()
-	for i := range 10 {
-		addr := returnTo(i * 8)
-		fmt.Printf("main[%d]: sp=0x%x fp=0x%x addr=0x%x\n", i*8, sp, fp, addr)
+	_, err := try.Handle()
+	if err != nil {
+		panic(err)
 	}
-	cook()
+	var xs uintptr        // This will be set SP with delve
+	var sp unsafe.Pointer // I should break here and set xs
+	sp = unsafe.Pointer(xs)
+	fmt.Printf("main: sp=0x%x input=0x%x\n", sp, xs)
+	cook(sp)
 }
 
-func cook() {
+// $184-8
+func cook(parentSP unsafe.Pointer) {
+	//targetBP := uintptr(parentSP) - 8
+	targetBP := uintptr(parentSP)
 	sp := getsp()
-	fp := getfp()
-	for i := range 10 {
-		addr := returnTo(i * 8)
-		fmt.Printf("cook[%d]: sp=0x%x fp=0x%x addr=0x%x\n", i*8, sp, fp, addr)
+	fmt.Printf("cook: sp=0x%x\n", sp)
+	for addr := sp; addr <= targetBP; addr += 8 {
+		if addr == uintptr(unsafe.Pointer(&targetBP)) {
+			continue
+		}
+		v := getmem(addr)
+		if v == targetBP {
+			fmt.Printf("found: target=0x%x parent=0x%x offset=0x%x\n", targetBP, parentSP, addr-sp)
+			break
+		}
 	}
-	for i := range 5 {
-		addr := returnTo2(i * 8)
-		fmt.Printf("cook2[%d]: sp=0x%x fp=0x%x addr=0x%x\n", i*8, sp, fp, addr)
-	}
-	for i := range 5 {
-		addr := returnTo2(-i * 8)
-		fmt.Printf("cook2[%d]: sp=0x%x fp=0x%x addr=0x%x\n", -i*8, sp, fp, addr)
-	}
-}
-
-func retret() error {
-	return errors.ErrUnsupported
 }

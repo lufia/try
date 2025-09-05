@@ -12,11 +12,9 @@ type Scope struct {
 	err error
 }
 
-//go:noinline
 func waserror(s *Scope) bool
 
-//go:noinline
-func raise(s *Scope)
+func raise(s *Scope) bool
 
 // Handle creates a fallback point.
 func Handle() (*Scope, error) {

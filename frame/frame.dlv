@@ -1,0 +1,8 @@
+b main.main
+c
+regs // Output: Rsp = 0x000000c000120ed8
+n
+n
+set xs = 0x000000c000120ed8
+c
+exit
