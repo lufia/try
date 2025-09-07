@@ -7,8 +7,10 @@ import "unsafe"
 type Scope struct {
 	pc  uintptr
 	sp  uintptr
+	bp  uintptr
 	pcu unsafe.Pointer
 	spu unsafe.Pointer
+	bpu unsafe.Pointer
 	err error
 }
 
@@ -24,6 +26,7 @@ func Handle() (*Scope, error) {
 	}
 	s.pcu = unsafe.Pointer(s.pc)
 	s.spu = unsafe.Pointer(s.sp)
+	s.bpu = unsafe.Pointer(s.bp)
 	return &s, nil
 }
 
@@ -35,6 +38,9 @@ func (s *Scope) Raise(err error) {
 		return
 	}
 	s.err = err
+	s.pc = uintptr(s.pcu)
+	s.sp = uintptr(s.spu)
+	s.bp = uintptr(s.bpu)
 	raise(s)
 	panic("do not reach here")
 }

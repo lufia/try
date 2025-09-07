@@ -19,6 +19,7 @@ func TestHandle(t *testing.T) {
 	t.Logf("func = %s\n", f.Name())
 	t.Logf("pc = %x\n", uintptr(s.pc))
 	t.Logf("sp = %x\n", uintptr(s.sp))
+	t.Logf("bp = %x\n", uintptr(s.bp))
 	t.Logf("frame = %x\n", uintptr(unsafe.Pointer(&i)))
 	gt.Number(t, int64(uintptr(s.pc))).NotEqual(0)
 	gt.Number(t, int64(uintptr(s.sp))).NotEqual(0)
@@ -28,6 +29,7 @@ func TestHandle(t *testing.T) {
 func TestScopeRaise(t *testing.T) {
 	raised := false
 	s, err := Handle()
+	t.Logf("err = %v", err)
 	if err != nil {
 		raised = true
 	}

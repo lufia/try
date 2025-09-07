@@ -3,26 +3,26 @@
 #include "go_asm.h"
 
 // $32-0
-#define	Handle_size 32
+// 40	return to try.Handle
 
-TEXT ·waserror(SB),(NOSPLIT|NOFRAME|WRAPPER),$0
+TEXT ·waserror(SB),NOSPLIT,$0
 	NO_LOCAL_POINTERS
 	MOVQ	s+0(FP), CX
-	MOVQ	32(SP), AX
-	MOVQ	(AX), AX
-	ADDQ	$8, AX
-	MOVQ	AX, Scope_sp(CX)
-	MOVQ	40(SP), AX
+	MOVQ	(BP), AX			// Handle^1 BP
+	MOVQ	AX, Scope_bp(CX)
+	LEAQ	8(BP), BX			// Handle SP
+	MOVQ	BX, Scope_sp(CX)
+	MOVQ	(BX), AX			// Handle^1 PC
 	MOVQ	AX, Scope_pc(CX)
 	MOVB	$0, ret+8(FP)
 	RET
 
-TEXT ·raise(SB),(NOSPLIT|NOFRAME|WRAPPER),$0
+TEXT ·raise(SB),NOSPLIT,$0
 	NO_LOCAL_POINTERS
 	MOVQ	s+0(FP), AX
-	MOVQ	Scope_sp(AX), BP
-	SUBQ	$8, BP
-	MOVQ	Scope_sp(AX), SP
+	MOVQ	Scope_bp(AX), BP
+	MOVQ	Scope_sp(AX), CX
+	MOVQ	CX, SP
 	MOVQ	Scope_pc(AX), CX
 	MOVQ	CX, 0(SP)
 	MOVQ	Scope_err(AX), BX
