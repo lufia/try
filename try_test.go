@@ -5,13 +5,11 @@ import (
 	"fmt"
 	"runtime"
 	"testing"
-	"unsafe"
 
 	"github.com/m-mizutani/gt"
 )
 
 func TestHandle(t *testing.T) {
-	var i int
 	s, err := Handle()
 	gt.NoError(t, err)
 
@@ -20,7 +18,6 @@ func TestHandle(t *testing.T) {
 	t.Logf("pc = %x\n", uintptr(s.pc))
 	t.Logf("sp = %x\n", uintptr(s.sp))
 	t.Logf("bp = %x\n", uintptr(s.bp))
-	t.Logf("frame = %x\n", uintptr(unsafe.Pointer(&i)))
 	gt.Number(t, int64(uintptr(s.pc))).NotEqual(0)
 	gt.Number(t, int64(uintptr(s.sp))).NotEqual(0)
 	gt.NoError(t, s.err)
