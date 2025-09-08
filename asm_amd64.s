@@ -2,9 +2,6 @@
 #include "funcdata.h"
 #include "go_asm.h"
 
-// $32-0
-// 40	return to try.Handle
-
 TEXT ·waserror(SB),NOSPLIT|NOFRAME,$0
 	NO_LOCAL_POINTERS
 	MOVQ	s+0(FP), CX
@@ -19,12 +16,22 @@ TEXT ·waserror(SB),NOSPLIT|NOFRAME,$0
 
 TEXT ·raise(SB),NOSPLIT|NOFRAME,$0
 	NO_LOCAL_POINTERS
-	MOVQ	s+0(FP), AX
-	MOVQ	Scope_bp(AX), BP
-	MOVQ	Scope_sp(AX), CX
-	MOVQ	CX, SP
-	MOVQ	Scope_pc(AX), CX
-	MOVQ	CX, 0(SP)
-	MOVQ	Scope_err(AX), BX
-	MOVQ	$(Scope_err+8)(AX), CX
+	MOVQ	s+0(FP), CX
+	MOVQ	Scope_bp(CX), AX
+	MOVQ	(BP), BX	// Raise^1 BP
+loop:
+	CMPQ	AX, BX
+	JEQ		next
+	MOVQ	(BX), BX
+	JMP		loop
+next:
+	MOVQ	Scope_pc(CX), AX
+	MOVQ	AX, 8(BX)
+	RET
+
+TEXT ·rewind(SB),NOSPLIT|NOFRAME,$0
+	NO_LOCAL_POINTERS
+	MOVQ	s+0(FP), CX
+	MOVQ	Scope_err(CX), BX
+	MOVQ	$(Scope_err+8)(CX), CX
 	RET

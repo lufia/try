@@ -8,15 +8,14 @@ type Scope struct {
 	pc  uintptr
 	sp  uintptr
 	bp  uintptr
-	pcu unsafe.Pointer
 	spu unsafe.Pointer
 	bpu unsafe.Pointer
 	err error
 }
 
 func waserror(s *Scope) bool
-
 func raise(s *Scope) bool
+func rewind(s *Scope)
 
 // Handle creates a fallback point.
 func Handle() (*Scope, error) {
@@ -24,7 +23,6 @@ func Handle() (*Scope, error) {
 	if waserror(&s) {
 		return &s, s.err
 	}
-	s.pcu = unsafe.Pointer(s.pc)
 	s.spu = unsafe.Pointer(s.sp)
 	s.bpu = unsafe.Pointer(s.bp)
 	return &s, nil
@@ -38,11 +36,9 @@ func (s *Scope) Raise(err error) {
 		return
 	}
 	s.err = err
-	s.pc = uintptr(s.pcu)
 	s.sp = uintptr(s.spu)
 	s.bp = uintptr(s.bpu)
 	raise(s)
-	panic("do not reach here")
 }
 
 type Cond[T any] struct {
@@ -53,10 +49,13 @@ type Cond[T any] struct {
 
 func (c *Cond[T]) Eval(s *Scope) T {
 	err := c.err
-	if c.fn != nil && err != nil {
-		err = c.fn(err)
+	if err != nil {
+		if c.fn != nil {
+			err = c.fn(err)
+		}
+		s.Raise(err)
+		rewind(s)
 	}
-	s.Raise(err)
 	return c.v
 }
 
