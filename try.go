@@ -13,16 +13,13 @@ type Scope struct {
 	err error
 }
 
-func waserror(s *Scope) bool
-func raise(s *Scope) bool
-func rewind(s *Scope)
+func waserror(s *Scope)
+func raise(s *Scope, skip int) (*Scope, error)
 
 // Handle creates a fallback point.
 func Handle() (*Scope, error) {
 	var s Scope
-	if waserror(&s) {
-		return &s, s.err
-	}
+	waserror(&s)
 	s.spu = unsafe.Pointer(s.sp)
 	s.bpu = unsafe.Pointer(s.bp)
 	return &s, nil
@@ -38,7 +35,7 @@ func (s *Scope) Raise(err error) {
 	s.err = err
 	s.sp = uintptr(s.spu)
 	s.bp = uintptr(s.bpu)
-	raise(s)
+	raise(s, 0)
 }
 
 type Cond[T any] struct {
@@ -54,7 +51,6 @@ func (c *Cond[T]) Eval(s *Scope) T {
 			err = c.fn(err)
 		}
 		s.Raise(err)
-		rewind(s)
 	}
 	return c.v
 }
