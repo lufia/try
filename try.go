@@ -7,21 +7,20 @@ import "unsafe"
 type Scope struct {
 	pc  uintptr
 	sp  uintptr
-	bp  uintptr
 	spu unsafe.Pointer
-	bpu unsafe.Pointer
 	err error
 }
 
-func waserror(s *Scope)
-func raise(s *Scope, skip int) (*Scope, error)
+func waserror(s *Scope) bool
+func raise(s *Scope) bool
 
 // Handle creates a fallback point.
 func Handle() (*Scope, error) {
 	var s Scope
-	waserror(&s)
+	if waserror(&s) {
+		return nil, s.err
+	}
 	s.spu = unsafe.Pointer(s.sp)
-	s.bpu = unsafe.Pointer(s.bp)
 	return &s, nil
 }
 
@@ -34,8 +33,8 @@ func (s *Scope) Raise(err error) {
 	}
 	s.err = err
 	s.sp = uintptr(s.spu)
-	s.bp = uintptr(s.bpu)
-	raise(s, 0)
+	raise(s)
+	panic("do not reach here")
 }
 
 type Cond[T any] struct {
