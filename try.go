@@ -5,8 +5,10 @@ import "unsafe"
 
 // Scope represents the fallback point.
 type Scope struct {
-	pc  uintptr
 	sp  uintptr
+	bp  uintptr
+	dx  uintptr
+	pc  uintptr
 	spu unsafe.Pointer
 	err error
 }
@@ -32,6 +34,8 @@ func (s *Scope) Raise(err error) {
 		return
 	}
 	s.err = err
+	sp := uintptr(s.spu)
+	s.bp += s.sp - sp
 	s.sp = uintptr(s.spu)
 	raise(s)
 	panic("do not reach here")
