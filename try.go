@@ -1,16 +1,16 @@
 // Package try provides error-handling utilities.
 package try
 
-import "unsafe"
+func getbp(skip int) uintptr
 
 // Scope represents the fallback point.
 type Scope struct {
-	sp  uintptr
-	bp  uintptr
-	dx  uintptr
-	pc  uintptr
-	spu unsafe.Pointer
-	err error
+	sp    uintptr
+	bp    uintptr
+	dx    uintptr
+	pc    uintptr
+	probe uintptr // BP of Handle's parent
+	err   error
 }
 
 func waserror(s *Scope) bool
@@ -22,7 +22,6 @@ func Handle() (*Scope, error) {
 	if waserror(&s) {
 		return nil, s.err
 	}
-	s.spu = unsafe.Pointer(s.sp)
 	return &s, nil
 }
 
@@ -30,14 +29,22 @@ func Handle() (*Scope, error) {
 //
 // Raise should be called on the same stack to [Handle].
 func (s *Scope) Raise(err error) {
+	s.raise(1, err)
+}
+
+func (s *Scope) raise(skip int, err error) {
 	if err == nil {
 		return
 	}
 	s.err = err
-	sp := uintptr(s.spu)
-	s.bp += s.sp - sp
-	s.sp = uintptr(s.spu)
-	raise(s)
+
+	bp := getbp(skip + 1)
+	d := bp - s.probe
+	ns := *s
+	ns.sp += d
+	ns.bp += d
+	ns.dx += d
+	raise(&ns)
 	panic("do not reach here")
 }
 
@@ -53,7 +60,7 @@ func (c *Cond[T]) Eval(s *Scope) T {
 		if c.fn != nil {
 			err = c.fn(err)
 		}
-		s.Raise(err)
+		s.raise(2, err)
 	}
 	return c.v
 }
@@ -75,7 +82,7 @@ func (c *Cond2[T1, T2]) Eval(s *Scope) (T1, T2) {
 	if c.fn != nil && err != nil {
 		err = c.fn(err)
 	}
-	s.Raise(err)
+	s.raise(2, err)
 	return c.v1, c.v2
 }
 

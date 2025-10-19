@@ -9,16 +9,29 @@ import (
 	"github.com/m-mizutani/gt"
 )
 
+func TestBP(t *testing.T) {
+	bp0 := getbp(1)
+	bp1 := wrap(2)
+	if bp0 != bp1 {
+		t.Errorf("bp0 = 0x%x; bp1 = 0x%x\n", bp0, bp1)
+	}
+}
+
+//go:noinline
+func wrap(skip int) uintptr {
+	return getbp(skip)
+}
+
 func TestHandle(t *testing.T) {
 	s, err := Handle()
 	gt.NoError(t, err)
 
-	f := runtime.FuncForPC(uintptr(s.pc))
+	f := runtime.FuncForPC(s.pc)
 	t.Logf("func = %s\n", f.Name())
-	t.Logf("pc = %x\n", uintptr(s.pc))
-	t.Logf("sp = %x\n", uintptr(s.sp))
-	gt.Number(t, int64(uintptr(s.pc))).NotEqual(0)
-	gt.Number(t, int64(uintptr(s.sp))).NotEqual(0)
+	t.Logf("pc = 0x%x\n", s.pc)
+	t.Logf("sp = 0x%x\n", s.sp)
+	gt.Number(t, int64(s.pc)).NotEqual(0)
+	gt.Number(t, int64(s.sp)).NotEqual(0)
 	gt.NoError(t, s.err)
 }
 
@@ -59,5 +72,5 @@ func TestCheck_onErrorWithWrap(t *testing.T) {
 	if msg == "" {
 		Check(10, errors.New("fake")).Wrap(wrap).Eval(s)
 	}
-	gt.String(t, msg).Equal("failed: fak")
+	gt.String(t, msg).Equal("failed: fake")
 }
