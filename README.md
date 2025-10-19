@@ -38,24 +38,29 @@ func GetAlerts(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
+The example above can rewrite more simple with **try**.
+
 ```go
-import (
-	"net/url"
-	"os"
-
-	"github.com/lufia/try"
-)
-
-func Run(file string) (string, error) {
-	scope, err := try.Handle()
+func GetAlerts(w http.ResponseWriter, r *http.Request) {
+	scope400, err := try.Handle()
 	if err != nil {
-		return "", err
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
-	s := try.Check(os.ReadFile(file))(scope)
-	u := try.Check(url.Parse(string(s)))(scope)
-	return u.Path, nil
+	scope500, err := try.Handle()
+	if err != nil {
+		http.Error(w, err.Error(), http.InternalServerError)
+		return
+	}
+
+	try.Raise(r.ParseForm())(scope400)
+	orgID := try.Check(strconv.Atoi(r.Form.Get("orgId")))(scope400)
+	alerts := try.Check(repository.FetchAlerts(orgID))(scope500)
+	body := try.Check(json.Marshal(alerts))(scope500)
+	...
 }
 ```
+
 
 *try.Handle* creates a fallback point, called "scope",  then return nil error
  at the first time.
