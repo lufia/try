@@ -55,12 +55,24 @@ func TestCheck_onError(t *testing.T) {
 		raised = true
 	}
 	if !raised {
-		Check(10, errors.New("fake")).Eval(s)
+		Check(10, errors.New("fake"))(s)
 	}
 	gt.Bool(t, raised).True()
 }
 
-func TestCheck_onErrorWithWrap(t *testing.T) {
+func TestCheck2_onError(t *testing.T) {
+	raised := false
+	s, err := Handle()
+	if err != nil {
+		raised = true
+	}
+	if !raised {
+		Check2(10, "test", errors.New("fake"))(s)
+	}
+	gt.Bool(t, raised).True()
+}
+
+func TestCheck_onErrorWithHandler(t *testing.T) {
 	wrap := func(err error) error {
 		return fmt.Errorf("failed: %w", err)
 	}
@@ -70,7 +82,7 @@ func TestCheck_onErrorWithWrap(t *testing.T) {
 		msg = err.Error()
 	}
 	if msg == "" {
-		Check(10, errors.New("fake")).Wrap(wrap).Eval(s)
+		Check(10, errors.New("fake"))(s, WithHandler(wrap))
 	}
 	gt.String(t, msg).Equal("failed: fake")
 }
