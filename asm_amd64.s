@@ -4,24 +4,24 @@
 
 TEXT ·waserror(SB),NOSPLIT|NOFRAME,$0
 	NO_LOCAL_POINTERS
-	MOVQ	s+0(FP), DI
-	MOVQ	SP, Scope_sp(DI)
-	MOVQ	BP, Scope_bp(DI)
-	MOVQ	DX, Scope_ctxt(DI)
+	MOVQ	cp+0(FP), DI
+	MOVQ	SP, Checkpoint_sp(DI)
+	MOVQ	BP, Checkpoint_bp(DI)
+	MOVQ	DX, Checkpoint_ctxt(DI)
 	MOVQ	(SP), AX
-	MOVQ	AX, Scope_pc(DI)
+	MOVQ	AX, Checkpoint_pc(DI)
 	MOVQ	(BP), AX
-	MOVQ	AX, Scope_probe(DI)
+	MOVQ	AX, Checkpoint_probe(DI)
 	MOVB	$0, ret+8(FP)
 	RET
 
 TEXT ·raise(SB),NOSPLIT|NOFRAME,$0
 	NO_LOCAL_POINTERS
-	MOVQ	s+0(FP), DI
-	MOVQ	Scope_sp(DI), SP
-	MOVQ	Scope_bp(DI), BP
-	MOVQ	Scope_ctxt(DI), DX
-	MOVQ	Scope_pc(DI), AX
+	MOVQ	cp+0(FP), DI
+	MOVQ	Checkpoint_sp(DI), SP
+	MOVQ	Checkpoint_bp(DI), BP
+	MOVQ	Checkpoint_ctxt(DI), DX
+	MOVQ	Checkpoint_pc(DI), AX
 	MOVQ	AX, (SP)
 	MOVB	$1, ret+8(FP)
 	RET

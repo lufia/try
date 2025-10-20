@@ -23,39 +23,39 @@ func wrap(skip int) uintptr {
 }
 
 func TestHandle(t *testing.T) {
-	s, err := Handle()
+	cp, err := Handle()
 	gt.NoError(t, err)
 
-	f := runtime.FuncForPC(s.pc)
+	f := runtime.FuncForPC(cp.pc)
 	t.Logf("func = %s\n", f.Name())
-	t.Logf("pc = 0x%x\n", s.pc)
-	t.Logf("sp = 0x%x\n", s.sp)
-	gt.Number(t, int64(s.pc)).NotEqual(0)
-	gt.Number(t, int64(s.sp)).NotEqual(0)
-	gt.NoError(t, s.err)
+	t.Logf("pc = 0x%x\n", cp.pc)
+	t.Logf("sp = 0x%x\n", cp.sp)
+	gt.Number(t, int64(cp.pc)).NotEqual(0)
+	gt.Number(t, int64(cp.sp)).NotEqual(0)
+	gt.NoError(t, cp.err)
 }
 
-func TestScopeCheck(t *testing.T) {
+func TestCheckpointCheck(t *testing.T) {
 	raised := false
-	s, err := Handle()
+	cp, err := Handle()
 	t.Logf("err = %v", err)
 	if err != nil {
 		raised = true
 	}
 	if !raised {
-		Check(errors.New("fake"))(s)
+		Check(errors.New("fake"))(cp)
 	}
 	gt.Bool(t, raised).True()
 }
 
 func TestCheck1_onError(t *testing.T) {
 	raised := false
-	s, err := Handle()
+	cp, err := Handle()
 	if err != nil {
 		raised = true
 	}
 	if !raised {
-		Check1(10, errors.New("fake"))(s)
+		Check1(10, errors.New("fake"))(cp)
 	}
 	gt.Bool(t, raised).True()
 }
@@ -65,24 +65,24 @@ func TestCheck1_onErrorWithHandler(t *testing.T) {
 		return fmt.Errorf("failed: %w", err)
 	}
 	msg := ""
-	s, err := Handle()
+	cp, err := Handle()
 	if err != nil {
 		msg = err.Error()
 	}
 	if msg == "" {
-		Check1(10, errors.New("fake"))(s, WithHandler(wrap))
+		Check1(10, errors.New("fake"))(cp, WithHandler(wrap))
 	}
 	gt.String(t, msg).Equal("failed: fake")
 }
 
 func TestCheck2_onError(t *testing.T) {
 	raised := false
-	s, err := Handle()
+	cp, err := Handle()
 	if err != nil {
 		raised = true
 	}
 	if !raised {
-		Check2(10, "test", errors.New("fake"))(s)
+		Check2(10, "test", errors.New("fake"))(cp)
 	}
 	gt.Bool(t, raised).True()
 }
