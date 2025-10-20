@@ -35,7 +35,7 @@ func Run(file string) (string, error) {
 *try.Handle* creates a fallback point, called "checkpoint",  then return nil error
  at the first time.
 
-After that, above code calls *os.ReadFile* and *url.Parse* with *try.Check*. If either these functions returns an error, *try.Check* rewind the program to the checkpoint, then *try.Handle* will return the error.
+After that, above code calls *os.ReadFile* and *url.Parse* with *try.Check1*. If either these functions returns an error, *try.Check1* rewind the program to the checkpoint, then *try.Handle* will return the error.
 
 **I strongly recommend that Check and Handle should call on the same stack.**
 
@@ -84,9 +84,9 @@ func GetAlerts(w http.ResponseWriter, r *http.Request) {
 	}
 
 	try.Raise(r.ParseForm())(cp400)
-	orgID := try.Check(strconv.Atoi(r.Form.Get("orgId")))(cp400)
-	alerts := try.Check(repository.FetchAlerts(orgID))(cp500)
-	body := try.Check(json.Marshal(alerts))(cp500)
+	orgID := try.Check1(strconv.Atoi(r.Form.Get("orgId")))(cp400)
+	alerts := try.Check1(repository.FetchAlerts(orgID))(cp500)
+	body := try.Check1(json.Marshal(alerts))(cp500)
 	...
 }
 ```
