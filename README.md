@@ -9,6 +9,36 @@ An experimental error handling library.
 * amd64
 * arm64
 
+## Usage
+
+This is a simple example.
+
+```go
+import (
+	"net/url"
+	"os"
+
+	"github.com/lufia/try"
+)
+
+func Run(file string) (string, error) {
+	scope, err := try.Handle()
+	if err != nil {
+		return "", err
+	}
+	s := try.Check1(os.ReadFile(file))(scope)
+	u := try.Check1(url.Parse(string(s)))(scope)
+	return u.Path, nil
+}
+```
+
+*try.Handle* creates a fallback point, called "scope",  then return nil error
+ at the first time.
+
+After that, above code calls *os.ReadFile* and *url.Parse* with *try.Check*. If either these functions returns an error, *try.Check* rewind the program to the scope, then *try.Handle* will return the error.
+
+**I strongly recommend that Check and Handle should call on the same stack.**
+
 ## Example
 
 Error handling in Go sometimes gets flustrated. For instance:
@@ -60,14 +90,6 @@ func GetAlerts(w http.ResponseWriter, r *http.Request) {
 	...
 }
 ```
-
-
-*try.Handle* creates a fallback point, called "scope",  then return nil error
- at the first time.
-
-After that, above code calls *os.ReadFile* and *url.Parse* with *try.Check*. If either these functions returns an error, *try.Check* rewind the program to the scope, then *try.Handle* will return the error.
-
-**I strongly recommend that Check and Handle should call on the same stack.**
 
 [godev-image]: https://pkg.go.dev/badge/github.com/lufia/try
 [godev-url]: https://pkg.go.dev/github.com/lufia/try
