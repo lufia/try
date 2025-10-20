@@ -1,8 +1,8 @@
 // Package try provides error-handling utilities.
 package try
 
-// Scope represents the fallback point.
-type Scope struct {
+// Checkpoint represents the fallback point.
+type Checkpoint struct {
 	sp    uintptr
 	bp    uintptr
 	ctxt  uintptr
@@ -14,53 +14,53 @@ type Scope struct {
 }
 
 // Option configures [Check], [Check1] and [Check2].
-type Option func(*Scope)
+type Option func(*Checkpoint)
 
-func applyOpts(s *Scope, opts ...Option) {
+func applyOpts(cp *Checkpoint, opts ...Option) {
 	for _, opt := range opts {
-		opt(s)
+		opt(cp)
 	}
 }
 
 func WithHandler(f func(err error) error) Option {
-	return func(s *Scope) {
-		s.handler = f
+	return func(cp *Checkpoint) {
+		cp.handler = f
 	}
 }
 
-func waserror(s *Scope) bool
-func raise(s *Scope) bool
+func waserror(cp *Checkpoint) bool
+func raise(cp *Checkpoint) bool
 func getbp(skip int) uintptr
 
 // Handle creates a fallback point.
-func Handle() (*Scope, error) {
-	var s Scope
-	if waserror(&s) {
-		return nil, s.err
+func Handle() (*Checkpoint, error) {
+	var cp Checkpoint
+	if waserror(&cp) {
+		return nil, cp.err
 	}
-	return &s, nil
+	return &cp, nil
 }
 
-func (s *Scope) raise(skip int, err error) {
-	if s.handler != nil {
-		err = s.handler(err)
+func (cp *Checkpoint) raise(skip int, err error) {
+	if cp.handler != nil {
+		err = cp.handler(err)
 	}
 	if err == nil {
 		return
 	}
-	s.err = err
+	cp.err = err
 
 	bp := getbp(skip + 1)
-	d := bp - s.probe
-	s.probe += d
-	s.sp += d
-	s.bp += d
-	s.ctxt += d
-	raise(s)
+	d := bp - cp.probe
+	cp.probe += d
+	cp.sp += d
+	cp.bp += d
+	cp.ctxt += d
+	raise(cp)
 	panic("do not reach here")
 }
 
-type Rewinder func(*Scope, ...Option)
+type Rewinder func(*Checkpoint, ...Option)
 
 // Check checks whether err is not nil.
 // If err is nil, it does nothing.
@@ -68,13 +68,13 @@ type Rewinder func(*Scope, ...Option)
 //
 // Check should be called on the same stack to [Handle].
 func Check(err error) Rewinder {
-	return func(s *Scope, opts ...Option) {
-		applyOpts(s, opts...)
-		s.raise(1, err)
+	return func(cp *Checkpoint, opts ...Option) {
+		applyOpts(cp, opts...)
+		cp.raise(1, err)
 	}
 }
 
-type Rewinder1[T any] func(*Scope, ...Option) T
+type Rewinder1[T any] func(*Checkpoint, ...Option) T
 
 // Check1 checks whether err is not nil.
 // If err is nil, it returns v.
@@ -82,20 +82,20 @@ type Rewinder1[T any] func(*Scope, ...Option) T
 //
 // Check1 should be called on the same stack to [Handle].
 func Check1[T any](v T, err error) Rewinder1[T] {
-	return func(s *Scope, opts ...Option) T {
-		applyOpts(s, opts...)
-		s.raise(1, err)
+	return func(cp *Checkpoint, opts ...Option) T {
+		applyOpts(cp, opts...)
+		cp.raise(1, err)
 		return v
 	}
 }
 
-type Rewinder2[T1, T2 any] func(*Scope, ...Option) (T1, T2)
+type Rewinder2[T1, T2 any] func(*Checkpoint, ...Option) (T1, T2)
 
 // Check2 is a variant of [Check1].
 func Check2[T1, T2 any](v1 T1, v2 T2, err error) Rewinder2[T1, T2] {
-	return func(s *Scope, opts ...Option) (T1, T2) {
-		applyOpts(s, opts...)
-		s.raise(1, err)
+	return func(cp *Checkpoint, opts ...Option) (T1, T2) {
+		applyOpts(cp, opts...)
+		cp.raise(1, err)
 		return v1, v2
 	}
 }

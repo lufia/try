@@ -22,20 +22,20 @@ import (
 )
 
 func Run(file string) (string, error) {
-	scope, err := try.Handle()
+	cp, err := try.Handle()
 	if err != nil {
 		return "", err
 	}
-	s := try.Check1(os.ReadFile(file))(scope)
-	u := try.Check1(url.Parse(string(s)))(scope)
+	s := try.Check1(os.ReadFile(file))(cp)
+	u := try.Check1(url.Parse(string(s)))(cp)
 	return u.Path, nil
 }
 ```
 
-*try.Handle* creates a fallback point, called "scope",  then return nil error
+*try.Handle* creates a fallback point, called "checkpoint",  then return nil error
  at the first time.
 
-After that, above code calls *os.ReadFile* and *url.Parse* with *try.Check*. If either these functions returns an error, *try.Check* rewind the program to the scope, then *try.Handle* will return the error.
+After that, above code calls *os.ReadFile* and *url.Parse* with *try.Check*. If either these functions returns an error, *try.Check* rewind the program to the checkpoint, then *try.Handle* will return the error.
 
 **I strongly recommend that Check and Handle should call on the same stack.**
 
@@ -72,21 +72,21 @@ The example above can rewrite more simple with **try**.
 
 ```go
 func GetAlerts(w http.ResponseWriter, r *http.Request) {
-	scope400, err := try.Handle()
+	cp400, err := try.Handle()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	scope500, err := try.Handle()
+	cp500, err := try.Handle()
 	if err != nil {
 		http.Error(w, err.Error(), http.InternalServerError)
 		return
 	}
 
-	try.Raise(r.ParseForm())(scope400)
-	orgID := try.Check(strconv.Atoi(r.Form.Get("orgId")))(scope400)
-	alerts := try.Check(repository.FetchAlerts(orgID))(scope500)
-	body := try.Check(json.Marshal(alerts))(scope500)
+	try.Raise(r.ParseForm())(cp400)
+	orgID := try.Check(strconv.Atoi(r.Form.Get("orgId")))(cp400)
+	alerts := try.Check(repository.FetchAlerts(orgID))(cp500)
+	body := try.Check(json.Marshal(alerts))(cp500)
 	...
 }
 ```
