@@ -6,7 +6,30 @@ on:
     - main
   pull_request:
 jobs:
+  # FIXME(lufia): revert this
+  #
+  # Under testing it with -cover and -covermode=atomic option pair,
+  # when SP register is written with an address,
+  # the program jumps to the address written to SP immediately.
+  #
+  #test:
+  #  uses: lufia/workflows/.github/workflows/go-test.yml@65fcecee196960dacd2ee5bd97a822d28e53411f # v0.7.1
+  #  with:
+  #    os-versions: '["ubuntu-24.04", "macos-15"]'
   test:
-    uses: lufia/workflows/.github/workflows/go-test.yml@65fcecee196960dacd2ee5bd97a822d28e53411f # v0.7.1
-    with:
-      os-versions: '["ubuntu-24.04", "macos-15"]'
+    strategy:
+      matrix:
+        os:
+        - ubuntu-24.04
+        - macos-15
+        go:
+        - stable
+        - oldstable
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+    - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6.0.0
+      with:
+        go-version: ${{ matrix.go }}
+    - run: go test
+      shell: bash
