@@ -7,7 +7,7 @@ TEXT ·waserror(SB),NOSPLIT|NOFRAME,$0
 	MOVQ	s+0(FP), DI
 	MOVQ	SP, Scope_sp(DI)
 	MOVQ	BP, Scope_bp(DI)
-	MOVQ	DX, Scope_dx(DI)
+	MOVQ	DX, Scope_ctxt(DI)
 	MOVQ	(SP), AX
 	MOVQ	AX, Scope_pc(DI)
 	MOVQ	(BP), AX
@@ -20,7 +20,7 @@ TEXT ·raise(SB),NOSPLIT|NOFRAME,$0
 	MOVQ	s+0(FP), DI
 	MOVQ	Scope_sp(DI), SP
 	MOVQ	Scope_bp(DI), BP
-	MOVQ	Scope_dx(DI), DX
+	MOVQ	Scope_ctxt(DI), DX
 	MOVQ	Scope_pc(DI), AX
 	MOVQ	AX, (SP)
 	MOVB	$1, ret+8(FP)

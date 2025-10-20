@@ -5,7 +5,7 @@ package try
 type Scope struct {
 	sp    uintptr
 	bp    uintptr
-	dx    uintptr
+	ctxt  uintptr
 	pc    uintptr
 	probe uintptr // BP of Handle's parent
 
@@ -47,7 +47,7 @@ func (s *Scope) raise(skip int, err error) {
 	s.probe += d
 	s.sp += d
 	s.bp += d
-	s.dx += d
+	s.ctxt += d
 	raise(s)
 	panic("do not reach here")
 }
