@@ -71,6 +71,11 @@ func (cp *Checkpoint) raise(skip int, err error) {
 	panic("do not reach here")
 }
 
+// Rewind rewinds current execution point to cp.
+func (cp *Checkpoint) Rewind(err error) {
+	cp.raise(1, err)
+}
+
 type RewinderFunc func(*Checkpoint, ...Option)
 
 // Check checks whether err is not nil.

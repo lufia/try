@@ -35,6 +35,20 @@ func TestHandle(t *testing.T) {
 	gt.NoError(t, cp.err)
 }
 
+func TestCheckpointRewind(t *testing.T) {
+	e := errors.New("rewinded")
+	cp1, err := Handle()
+	if err != nil {
+		gt.Error(t, err).Is(e)
+		return
+	}
+	cp2, err := Handle()
+	if err != nil {
+		cp1.Rewind(err)
+	}
+	cp2.Rewind(e)
+}
+
 func TestCheckpointCheck(t *testing.T) {
 	raised := false
 	cp, err := Handle()
