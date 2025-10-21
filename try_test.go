@@ -75,6 +75,18 @@ func TestCheck1_onErrorWithHandler(t *testing.T) {
 	gt.String(t, msg).Equal("failed: fake")
 }
 
+func TestCheck1_onErrorWithDescription(t *testing.T) {
+	msg := ""
+	cp, err := Handle()
+	if err != nil {
+		msg = err.Error()
+	}
+	if msg == "" {
+		Check1(10, errors.New("fake"))(cp, WithDescription("failed"))
+	}
+	gt.String(t, msg).Equal("failed: fake")
+}
+
 func TestCheck2_onError(t *testing.T) {
 	raised := false
 	cp, err := Handle()
