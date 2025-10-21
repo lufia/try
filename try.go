@@ -31,7 +31,7 @@ func WithHandler(f func(err error) error) Option {
 }
 
 func WithDescription(format string, args ...any) Option {
-	prefix := fmt.Errorf(format, args...)
+	prefix := fmt.Sprintf(format, args...)
 	return func(cp *Checkpoint) {
 		cp.handler = func(err error) error {
 			return fmt.Errorf("%s: %w", prefix, err)
@@ -53,11 +53,11 @@ func Handle() (*Checkpoint, error) {
 }
 
 func (cp *Checkpoint) raise(skip int, err error) {
-	if cp.handler != nil {
-		err = cp.handler(err)
-	}
 	if err == nil {
 		return
+	}
+	if cp.handler != nil {
+		err = cp.handler(err)
 	}
 	cp.err = err
 
