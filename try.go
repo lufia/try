@@ -71,28 +71,28 @@ func (cp *Checkpoint) raise(skip int, err error) {
 	panic("do not reach here")
 }
 
-type Rewinder func(*Checkpoint, ...Option)
+type RewinderFunc func(*Checkpoint, ...Option)
 
 // Check checks whether err is not nil.
 // If err is nil, it does nothing.
 // Otherwise it rewinds to the fallback point s, then [Handle] returns err.
 //
 // Check should be called on the same stack to [Handle].
-func Check(err error) Rewinder {
+func Check(err error) RewinderFunc {
 	return func(cp *Checkpoint, opts ...Option) {
 		applyOpts(cp, opts...)
 		cp.raise(1, err)
 	}
 }
 
-type Rewinder1[T any] func(*Checkpoint, ...Option) T
+type RewinderFunc1[T any] func(*Checkpoint, ...Option) T
 
 // Check1 checks whether err is not nil.
 // If err is nil, it returns v.
 // Otherwise it rewinds to the fallback point s, then [Handle] returns err.
 //
 // Check1 should be called on the same stack to [Handle].
-func Check1[T any](v T, err error) Rewinder1[T] {
+func Check1[T any](v T, err error) RewinderFunc1[T] {
 	return func(cp *Checkpoint, opts ...Option) T {
 		applyOpts(cp, opts...)
 		cp.raise(1, err)
@@ -100,10 +100,10 @@ func Check1[T any](v T, err error) Rewinder1[T] {
 	}
 }
 
-type Rewinder2[T1, T2 any] func(*Checkpoint, ...Option) (T1, T2)
+type RewinderFunc2[T1, T2 any] func(*Checkpoint, ...Option) (T1, T2)
 
 // Check2 is a variant of [Check1].
-func Check2[T1, T2 any](v1 T1, v2 T2, err error) Rewinder2[T1, T2] {
+func Check2[T1, T2 any](v1 T1, v2 T2, err error) RewinderFunc2[T1, T2] {
 	return func(cp *Checkpoint, opts ...Option) (T1, T2) {
 		applyOpts(cp, opts...)
 		cp.raise(1, err)
