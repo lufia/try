@@ -35,6 +35,20 @@ func TestHandle(t *testing.T) {
 	gt.NoError(t, cp.err)
 }
 
+func TestCheckpointRewind(t *testing.T) {
+	e := errors.New("rewinded")
+	cp1, err := Handle()
+	if err != nil {
+		gt.Error(t, err).Is(e)
+		return
+	}
+	cp2, err := Handle()
+	if err != nil {
+		cp1.Rewind(err)
+	}
+	cp2.Rewind(e)
+}
+
 func TestCheckpointCheck(t *testing.T) {
 	raised := false
 	cp, err := Handle()
@@ -71,6 +85,18 @@ func TestCheck1_onErrorWithHandler(t *testing.T) {
 	}
 	if msg == "" {
 		Check1(10, errors.New("fake"))(cp, WithHandler(wrap))
+	}
+	gt.String(t, msg).Equal("failed: fake")
+}
+
+func TestCheck1_onErrorWithDescription(t *testing.T) {
+	msg := ""
+	cp, err := Handle()
+	if err != nil {
+		msg = err.Error()
+	}
+	if msg == "" {
+		Check1(10, errors.New("fake"))(cp, WithDescription("failed"))
 	}
 	gt.String(t, msg).Equal("failed: fake")
 }
