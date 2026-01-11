@@ -1,7 +1,10 @@
 // Package try provides error-handling utilities.
 package try
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 // Checkpoint represents the fallback point.
 type Checkpoint struct {
@@ -39,6 +42,19 @@ func WithDescription(format string, args ...any) Option {
 	}
 }
 
+func WithIgnore(errs ...error) Option {
+	return func(cp *Checkpoint) {
+		cp.handler = func(err error) error {
+			for _, e := range errs {
+				if errors.Is(err, e) {
+					return nil
+				}
+			}
+			return err
+		}
+	}
+}
+
 func waserror(cp *Checkpoint) bool
 func raise(cp *Checkpoint) bool
 func getbp(skip int) uintptr
@@ -58,6 +74,9 @@ func (cp *Checkpoint) raise(skip int, err error) {
 	}
 	if cp.handler != nil {
 		err = cp.handler(err)
+		if err == nil {
+			return
+		}
 	}
 	cp.err = err
 

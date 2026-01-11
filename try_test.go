@@ -101,6 +101,14 @@ func TestCheck1_onErrorWithDescription(t *testing.T) {
 	gt.String(t, msg).Equal("failed: fake")
 }
 
+func TestCheck1_onErrorWithIgnore(t *testing.T) {
+	cp, err := Handle()
+	if err != nil {
+		t.Errorf("should ignore an error")
+	}
+	Check(fmt.Errorf("fake: %w", errors.ErrUnsupported))(cp, WithIgnore(errors.ErrUnsupported))
+}
+
 func TestCheck2_onError(t *testing.T) {
 	raised := false
 	cp, err := Handle()
