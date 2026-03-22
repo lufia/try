@@ -14,8 +14,8 @@ type Checkpoint struct {
 	pc    uintptr
 	probe uintptr // BP of Handle's parent
 
-	err     error
-	handler func(err error) error
+	err      error
+	handlers []func(err error) error
 }
 
 // Option configures [Check], [Check1] and [Check2].
@@ -29,29 +29,29 @@ func applyOpts(cp *Checkpoint, opts ...Option) {
 
 func WithHandler(f func(err error) error) Option {
 	return func(cp *Checkpoint) {
-		cp.handler = f
+		cp.handlers = append(cp.handlers, f)
 	}
 }
 
 func WithDescription(format string, args ...any) Option {
 	prefix := fmt.Sprintf(format, args...)
 	return func(cp *Checkpoint) {
-		cp.handler = func(err error) error {
+		cp.handlers = append(cp.handlers, func(err error) error {
 			return fmt.Errorf("%s: %w", prefix, err)
-		}
+		})
 	}
 }
 
 func WithIgnore(errs ...error) Option {
 	return func(cp *Checkpoint) {
-		cp.handler = func(err error) error {
+		cp.handlers = append(cp.handlers, func(err error) error {
 			for _, e := range errs {
 				if errors.Is(err, e) {
 					return nil
 				}
 			}
 			return err
-		}
+		})
 	}
 }
 
@@ -72,8 +72,8 @@ func (cp *Checkpoint) raise(skip int, err error) {
 	if err == nil {
 		return
 	}
-	if cp.handler != nil {
-		err = cp.handler(err)
+	for _, f := range cp.handlers {
+		err = f(err)
 		if err == nil {
 			return
 		}
