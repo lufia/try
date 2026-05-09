@@ -8,6 +8,7 @@ An experimental error handling library.
 
 * amd64
 * arm64
+* 386
 
 ## Usage
 
