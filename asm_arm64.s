@@ -10,7 +10,7 @@ TEXT ·waserror(SB),NOSPLIT|NOFRAME,$0
 	MOVD	R29, Checkpoint_bp(R2)
 	MOVD	R26, Checkpoint_ctxt(R2)
 	MOVD	LR, Checkpoint_pc(R2)
-	MOVD	(R29), R0
+	MOVD	(g_stack+stack_hi)(g), R0 // g.stack.hi -> R0
 	MOVD	R0, Checkpoint_probe(R2)
 	MOVD	$0, R0
 	MOVD	R0, ret+8(FP)
@@ -28,16 +28,8 @@ TEXT ·raise(SB),NOSPLIT|NOFRAME,$0
 	MOVD	R0, ret+8(FP)
 	RET
 
-TEXT ·getbp(SB),NOSPLIT|NOFRAME,$0
+TEXT ·stkhi(SB),NOSPLIT|NOFRAME,$0
 	NO_LOCAL_POINTERS
-	MOVD	skip+0(FP), R2
-	MOVD	R29, R0
-loop:
-	CMP	$0, R2 // 0 > R2
-	BLE	end
-	MOVD	(R0), R0
-	SUB	$1, R2, R2
-	JMP	loop
-end:
-	MOVD	R0, ret+8(FP)
+	MOVD	(g_stack+stack_hi)(g), R0 // g.stack.hi -> R0
+	MOVD	R0, ret+0(FP)
 	RET

@@ -57,7 +57,7 @@ func WithIgnore(errs ...error) Option {
 
 func waserror(cp *Checkpoint) bool
 func raise(cp *Checkpoint) bool
-func getbp(skip int) uintptr
+func stkhi() uintptr
 
 // Handle creates a fallback point.
 func Handle() (*Checkpoint, error) {
@@ -80,8 +80,8 @@ func (cp *Checkpoint) raise(skip int, err error) {
 	}
 	cp.err = err
 
-	bp := getbp(skip + 1)
-	d := bp - cp.probe
+	hi := stkhi()
+	d := hi - cp.probe
 	cp.probe += d
 	cp.sp += d
 	cp.bp += d
