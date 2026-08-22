@@ -31,17 +31,22 @@ jobs:
         include:
         - arch: amd64
           os: ubuntu-24.04
+          flags: -race -covermode=atomic -coverprofile=cover.out
         - arch: 386
           os: ubuntu-24.04
+          # -race is not supported on 386 so we should omit it.
+          flags: -covermode=atomic -coverprofile=cover.out
         - arch: arm64
           os: macos-15
+          flags: -race -covermode=atomic -coverprofile=cover.out
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
     - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
       with:
         go-version: ${{ matrix.go }}
-    - run: go test
+    - run: go test $TESTFLAGS ./...
       shell: bash
       env:
         GOARCH: ${{ matrix.arch }}
+        TESTFLAGS: ${{ matrix.flags }}
