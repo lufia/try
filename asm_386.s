@@ -25,10 +25,9 @@ TEXT ·raise(SB),NOSPLIT|NOFRAME,$0
 	MOVB	$1, ret+4(FP)
 	RET
 
-// returns stack-top
-TEXT ·getbp(SB),NOSPLIT|NOFRAME,$0
+TEXT ·stkhi(SB),NOSPLIT|NOFRAME,$0
 	NO_LOCAL_POINTERS
 	MOVL	(TLS), DI
 	MOVL	(g_stack+stack_hi)(DI), AX // g.stack.hi -> AX
-	MOVL	AX, ret+4(FP)
+	MOVL	AX, ret+0(FP)
 	RET

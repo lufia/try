@@ -10,7 +10,7 @@ TEXT ·waserror(SB),NOSPLIT|NOFRAME,$0
 	MOVQ	DX, Checkpoint_ctxt(DI)
 	MOVQ	(SP), AX
 	MOVQ	AX, Checkpoint_pc(DI)
-	MOVQ	(BP), AX
+	MOVQ	(g_stack+stack_hi)(R14), AX // g.stack.hi -> AX
 	MOVQ	AX, Checkpoint_probe(DI)
 	MOVB	$0, ret+8(FP)
 	RET
@@ -26,16 +26,8 @@ TEXT ·raise(SB),NOSPLIT|NOFRAME,$0
 	MOVB	$1, ret+8(FP)
 	RET
 
-TEXT ·getbp(SB),NOSPLIT|NOFRAME,$0
+TEXT ·stkhi(SB),NOSPLIT|NOFRAME,$0
 	NO_LOCAL_POINTERS
-	MOVQ	skip+0(FP), DI
-	MOVQ	BP, AX
-loop:
-	CMPQ	DI, $0
-	JBE	end
-	MOVQ	(AX), AX
-	DECQ	DI
-	JMP	loop
-end:
-	MOVQ	AX, ret+8(FP)
+	MOVQ	(g_stack+stack_hi)(R14), AX // g.stack.hi -> AX
+	MOVQ	AX, ret+0(FP)
 	RET

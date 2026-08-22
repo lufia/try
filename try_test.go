@@ -10,16 +10,16 @@ import (
 )
 
 func TestBP(t *testing.T) {
-	bp0 := getbp(1)
-	bp1 := wrap(2)
-	if bp0 != bp1 {
-		t.Errorf("bp0 = 0x%x; bp1 = 0x%x\n", bp0, bp1)
+	p1 := stkhi()
+	p2 := wrapstkhi()
+	if p1 != p2 {
+		t.Errorf("p1 = 0x%x; p2 = 0x%x\n", p1, p2)
 	}
 }
 
 //go:noinline
-func wrap(skip int) uintptr {
-	return getbp(skip)
+func wrapstkhi() uintptr {
+	return stkhi()
 }
 
 func TestHandle(t *testing.T) {
