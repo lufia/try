@@ -9,6 +9,18 @@ import (
 	"github.com/m-mizutani/gt"
 )
 
+func TestIsZero(t *testing.T) {
+	type (
+		Z struct{}
+		U struct{ N byte }
+	)
+	gt.Bool(t, isZero(Z{})).True()
+	gt.Bool(t, isZero(U{N: 1})).False()
+	gt.Bool(t, isZero(U{})).True()
+	gt.Bool(t, isZero[*int](nil)).True()
+	gt.Bool(t, isZero(new(int))).False()
+}
+
 func TestBP(t *testing.T) {
 	p1 := stkhi()
 	p2 := wrapstkhi()
@@ -47,6 +59,16 @@ func TestCheckpointRewind(t *testing.T) {
 		cp1.Rewind(err)
 	}
 	cp2.Rewind(e)
+}
+
+func TestHandleFor(t *testing.T) {
+	e := errors.New("rewinded")
+	cp, err := HandleFor[error]()
+	if err != nil {
+		gt.Error(t, err).Is(e)
+		return
+	}
+	Check(e)(cp)
 }
 
 func TestCheckpointCheck(t *testing.T) {
