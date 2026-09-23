@@ -91,6 +91,8 @@ func (cp *Checkpoint) raise(skip int, err error) {
 }
 
 // Rewind rewinds current execution point to cp.
+//
+// Deprecated: use goto statement instead.
 func (cp *Checkpoint) Rewind(err error) {
 	cp.raise(1, err)
 }
