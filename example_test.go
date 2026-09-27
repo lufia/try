@@ -8,12 +8,12 @@ import (
 )
 
 func Example() {
-	s, err := try.Handle()
+	cp, err := try.Handle()
 	if err != nil {
 		fmt.Println("error:", err)
 		return
 	}
-	v := try.Check1(read())(s)
+	v := try.Check1(read())(cp)
 	fmt.Println("value:", v)
 	// Output:
 	// error: unsupported operation
