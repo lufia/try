@@ -37,8 +37,13 @@ func Run(file string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	s := cp.Check1(os.ReadFile(file))
+	u := cp.Check1(url.Parse(string(s)))
+
+	// If you use Go 1.26 or earlier, use function style instead.
 	s := try.Check1(os.ReadFile(file))(cp)
 	u := try.Check1(url.Parse(string(s)))(cp)
+
 	return u.Path, nil
 }
 ```
@@ -81,22 +86,36 @@ func GetAlerts(w http.ResponseWriter, r *http.Request) {
 The example above can rewrite more simple with **try**.
 
 ```go
-func GetAlerts(w http.ResponseWriter, r *http.Request) {
-	on400, err := try.Handle()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	on500, err := try.Handle()
-	if err != nil {
-		http.Error(w, err.Error(), http.InternalServerError)
-		return
-	}
+type httpError struct {
+	Err  error
+	Code int
+}
 
-	try.Check(r.ParseForm())(on400)
-	orgID := try.Check1(strconv.Atoi(r.Form.Get("orgId")))(on400)
-	alerts := try.Check1(repository.FetchAlerts(orgID))(on500)
-	body := try.Check1(json.Marshal(alerts))(on500)
+func (e *httpError) Error() string { return e.Err.Error() }
+
+func (e *httpError) Unwrap() error { return e.Err }
+
+func e(err error, code int) *httpError {
+	if err == nil { return nil }
+	return &httpError{err, code}
+}
+
+func GetAlerts(w http.ResponseWriter, r *http.Request) {
+	cp, err := try.HandleFor[*httpError]()
+	if err != nil {
+		http.Error(w, http.StatusText(err.Code), err.Code)
+		return
+	}
+	cp.Check(e(r.ParseForm(), http.StatusBadRequest))
+
+	orgID, err := strconv.Atoi(r.Form.Get("orgId"))
+	cp.Check(e(err, http.StatusBadRequest))
+
+	alerts, err := repository.FetchAlerts(orgID)
+	cp.Check(e(err, http.StatusInternalServerError))
+
+	body, err := json.Marshal(alerts)
+	cp.Check(e(err, http.StatusInternalServerError))
 	...
 }
 ```
@@ -111,6 +130,14 @@ if err != nil {
 	return nil, err
 }
 buf := make([]byte, 1<<8)
+
+n := cp.Check1Options(os.Stdin.Read(buf))(
+	try.WithIgnore(io.EOF),
+	try.WithDescription("failed to read"),
+)
+
+// If you use Go 1.26 or earlier, use function style instead.
 n := try.Check1(os.Stdin.Read(buf))(cp, try.WithIgnore(io.EOF), try.WithDescription("failed to read"))
+
 return buf[:n], nil
 ```
